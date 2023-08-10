@@ -1,0 +1,21 @@
+{
+    "port": 8080,
+    "endpoints": [
+        {
+            "method": "GET",
+            "path": "/foo/bar",
+            "enabled": false
+        },
+        {
+            "method": "POST",
+            "path": "/foo/bar",
+            "response_file": "/foo/bar/myfile.txt",
+            "delay": 150
+        },
+        {
+            "method": "POST",
+            "path": "/foo/bar",
+            "response_code": 418
+        }
+    ]
+}

@@ -301,6 +301,9 @@ def loadEndpoints():
         if "response_file" not in endpoint:
             endpoint['response_file'] = None
 
+        if "request_file_path" in endpoint:
+            endpoint['request_file_path'] = str(endpoint['request_file_path']).strip()
+
         if "request_file_path" not in endpoint:
             endpoint['request_file_path'] = None
 
@@ -323,7 +326,7 @@ def loadEndpoints():
             endpoint['delay'] = 0
 
         insert_statement = "INSERT INTO endpoints (method, path, response_file, request_file_path, response_code, delay) VALUES (?,?,?,?,?,?)"
-        parameters = (str(endpoint['method']).strip().upper(), str(endpoint['path']).strip(), str(endpoint['response_file']).strip(), str(endpoint['request_file_path']).strip(), endpoint['response_code'], endpoint['delay'])
+        parameters = (str(endpoint['method']).strip().upper(), str(endpoint['path']).strip(), endpoint['response_file'], endpoint['request_file_path'], endpoint['response_code'], endpoint['delay'])
         cursor.execute(insert_statement, parameters)
 
     logger.info("Settings loaded.")

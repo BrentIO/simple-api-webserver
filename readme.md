@@ -18,7 +18,7 @@ Some useful examples of things you can do:
 
 A bunch of things, though here are a few that could be added:
  - Authentication validation
- - Logging requests or payloads
+ - ~~Logging requests or payloads~~
  - Intelligent responses based on request content
  - Non-core HTTP method types
  - CORS header verification
@@ -57,6 +57,7 @@ Server will automatically pick up changes made to the settings.json file while r
 | endpoints -> method | (None) | Required | String | The HTTP method for the request.  Supported are (`GET`, `POST`, `PUT`, `DELETE`, `PATCH`). Note, `OPTIONS` always returns 200 with headers to support CORS; This cannot be overridden.
 | endpoints -> path | (None) | Required | String | The URL path of the request, inclusive of the leading slash.|
 | endpoints -> response_file | (None) | Optional | String | File path containing the response body that will be sent when the request is processed.  The content-type is guessed based on the file extension. If not specified, no body will be sent.|
+| endpoints -> request_file_path | (None) | Optional | String | Path where the request payload should be saved on `POST`, `PUT`, `PATCH` operations.  Timestamp will be used for the filename, and the file extension will be guessed from the Content-Type header. If not specified, the payload will not be saved.|
 | endpoints-> response_code | `200` | Optional | Integer | The HTTP response code that will be returned to the caller.  Any response code can be specified. Setting the value to `0` will cause a socket hang-up without a response.|
 | endpoints -> delay | `0` | Optional | Integer | The number of *milliseconds* the server should wait before processing a response.|
 | endpoints -> enabled | `true` | Optional | Boolean | If this entry for the endpoint is should be enabled for responses.|

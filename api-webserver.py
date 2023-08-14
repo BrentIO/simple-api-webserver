@@ -16,6 +16,7 @@ import time
 from watchdog.observers import Observer             #pip3 install watchdog
 from watchdog.events import PatternMatchingEventHandler
 import random
+from mimetypes import guess_extension
 
 
 def handle_interrupt(signal, frame):
@@ -140,6 +141,17 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             if len(rows) > 1:
                 rowNumber = random.randint(0, len(rows)-1)
 
+            if rows[rowNumber]['request_file_path'] != None and self.command in ["POST", "PATCH", "PUT"]:
+                extension = guess_extension(self.headers['Content-Type'])
+                content_length = int(self.headers['Content-Length'])
+
+                if extension == None:
+                    extension = ""
+
+                with open(os.path.join(rows[rowNumber]['request_file_path'], str(int(time.time()*1000))) + extension,  "wb") as f:
+                    f.write(self.rfile.read(content_length))
+                    f.close()
+
             time.sleep(rows[rowNumber]['delay']/1000)
 
             if rows[rowNumber]['response_code'] == 0:
@@ -148,7 +160,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             if rows[rowNumber]['response_file'] == None:
                  responseHandler(self, rows[rowNumber]['response_code'])
                  return
-
+            
             if os.path.exists(rows[rowNumber]['response_file']) == False:
                 raise HTTPErrorResponse(message="File specified in settings.json (" + rows[rowNumber]['response_file'] + ") does not exist.")
                 return
@@ -289,6 +301,13 @@ def loadEndpoints():
         if "response_file" not in endpoint:
             endpoint['response_file'] = None
 
+        if "request_file_path" not in endpoint:
+            endpoint['request_file_path'] = None
+
+        if endpoint['request_file_path'] != None: 
+            if os.path.exists(endpoint['request_file_path']) == False:
+                os.makedirs(endpoint['request_file_path'])
+
         if "response_code" not in endpoint:
             endpoint['response_code'] = 200
 
@@ -303,8 +322,8 @@ def loadEndpoints():
             logger.warning("delay at position " + str(position) + " " + endpoint['method'] + " " + endpoint['path'] + " is non-numeric, will use 0 instead")
             endpoint['delay'] = 0
 
-        insert_statement = "INSERT INTO endpoints (method, path, response_file, response_code, delay) VALUES (?,?,?,?,?)"
-        parameters = (str(endpoint['method']).strip().upper(), str(endpoint['path']).strip(), endpoint['response_file'], endpoint['response_code'], endpoint['delay'])
+        insert_statement = "INSERT INTO endpoints (method, path, response_file, request_file_path, response_code, delay) VALUES (?,?,?,?,?,?)"
+        parameters = (str(endpoint['method']).strip().upper(), str(endpoint['path']).strip(), str(endpoint['response_file']).strip(), str(endpoint['request_file_path']).strip(), endpoint['response_code'], endpoint['delay'])
         cursor.execute(insert_statement, parameters)
 
     logger.info("Settings loaded.")
@@ -346,7 +365,7 @@ def setup():
 
         database = sqlite3.connect(":memory:" , check_same_thread=False)
         cursor = database.cursor()
-        cursor.execute("CREATE TABLE endpoints (method text, path text, response_file text, response_code int, delay int);")
+        cursor.execute("CREATE TABLE endpoints (method text, path text, response_file text, request_file_path text, response_code int, delay int);")
         cursor.close()
 
         loadEndpoints()
